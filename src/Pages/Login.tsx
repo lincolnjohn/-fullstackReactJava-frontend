@@ -6,24 +6,30 @@ import  Form  from "react-bootstrap/Form";
 import  Button  from "react-bootstrap/Button";
 import  Spinner  from "react-bootstrap/Spinner";
 import React, { useState } from "react";
-import { registerUser } from "../Services/UserService";
+import Alert from "react-bootstrap/Alert";
+import { loginUser } from "../Services/UserService";
 
 const Login = () =>{
 
-    const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [errors, setErrors] = useState<any>({});
+    const [error, setError] = useState("");
     const [sendingData, setSendingData] = useState(false);
 
-    const register = async (e: React.SyntheticEvent)=>{
+    const login = async (e: React.SyntheticEvent)=>{
         e.preventDefault();
         try {
             setSendingData(true);
-            await registerUser(name, email, password);      
+            setError("");
+            const res= await loginUser(email, password);
+            const token =res.data.token;
+            
             setSendingData(false);
         } catch (errors:any) {
-            setErrors(errors.response.data.errors);            
+            if (errors.response) {
+                errors.response.status === 403 && setError("Não pode iniciar a sessão com essas credenciais!!");
+            }
+            
             setSendingData(false);
         }
         
@@ -35,40 +41,21 @@ const Login = () =>{
                 <Col lg="5" md='10' sm='10' className="mx-auto">
                     <Card className="mt-5">
                         <Card.Body>
-                            <h4>Criar conta</h4><hr />
-                            <Form onSubmit={register}>
-                                <Form.Group className="mb-3" controlId="name">
-                                    <Form.Label>Nome</Form.Label>
-                                    <Form.Control 
-                                        isInvalid={!!errors.name}
-                                        value={name}
-                                        onChange={ e => setName(e.target.value)}
-                                        type="text" placeholder="Informe o Nome"></Form.Control>
-                                    <Form.Control.Feedback type="invalid">
-                                        {errors?.name}
-                                    </Form.Control.Feedback>
-                                </Form.Group>
+                            <h4>Iniciar Sessão</h4><hr />
+                            <Form onSubmit={login}>
                                 <Form.Group className="mb-3" controlId="email">
                                     <Form.Label>E-mail</Form.Label>
                                     <Form.Control 
-                                        isInvalid={!!errors.email}
                                         value={email}
                                         onChange={ e => setEmail(e.target.value)}
                                         type="email" placeholder="Informe o seu e-mail"></Form.Control>
-                                        <Form.Control.Feedback type="invalid">
-                                            {errors?.email}
-                                        </Form.Control.Feedback>
                                 </Form.Group>
                                 <Form.Group className="mb-3" controlId="password">
                                     <Form.Label>Senha</Form.Label>
                                     <Form.Control 
-                                        isInvalid={!!errors.password}
                                         value={password}
                                         onChange={ e => setPassword(e.target.value)}
                                         type="password" placeholder="Informe o Senha"></Form.Control>
-                                        <Form.Control.Feedback type="invalid">
-                                            {errors?.password}
-                                        </Form.Control.Feedback>
                                 </Form.Group>
                                 <Button type="submit">
                                     {sendingData?<>
@@ -79,11 +66,12 @@ const Login = () =>{
                                             role="status"
                                             aria-hidden="true"
                                         ></Spinner>&nbsp;
-                                        <span>Criando conta......</span>
-                                    </>: <>Criar conta</>}
+                                        <span>Iniciando sessão......</span>
+                                    </>: <>Iniciar Sessão</>}
                                 </Button>
 
                            </Form>
+                           <Alert className="mt-4" show={!!error} variant="danger">{error}</Alert>
                             
                         </Card.Body>
 
