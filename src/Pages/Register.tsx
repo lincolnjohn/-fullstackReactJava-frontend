@@ -6,7 +6,8 @@ import  Form  from "react-bootstrap/Form";
 import  Button  from "react-bootstrap/Button";
 import  Spinner  from "react-bootstrap/Spinner";
 import React, { useState } from "react";
-import { registerUser } from "../Services/UserService";
+import { loginUser, registerUser } from "../Services/UserService";
+import { useAuthDispatch } from "../context/authContext";
 
 const Register = () =>{
 
@@ -15,13 +16,20 @@ const Register = () =>{
     const [password, setPassword] = useState("");
     const [errors, setErrors] = useState<any>({});
     const [sendingData, setSendingData] = useState(false);
+    const authDispatch = useAuthDispatch()
 
     const register = async (e: React.SyntheticEvent)=>{
         e.preventDefault();
         try {
             setSendingData(true);
-            await registerUser(name, email, password);      
-            setSendingData(false);
+            await registerUser(name, email, password);   
+            const res= await loginUser(email, password);
+            const token =res.data.token;
+
+            authDispatch({
+                type:'login',
+                token
+            })   
         } catch (errors:any) {
             setErrors(errors.response.data.errors);            
             setSendingData(false);
@@ -95,3 +103,7 @@ const Register = () =>{
 }
 
 export default Register
+
+function authDispatch(arg0: { type: string; token: any; }) {
+    throw new Error("Function not implemented.");
+}
